@@ -1,9 +1,1523 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Mi web</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gigi — Pizzeria Italiana · Arrecife, Lanzarote</title>
+  <meta name="description" content="Pizzeria Italiana Gigi. Auténtica cocina italiana desde 1996 en el corazón de Arrecife, Lanzarote. Más de 30 variedades de pizza artesana.">
+  <meta property="og:title" content="Gigi — Pizzeria Italiana · Arrecife">
+  <meta property="og:description" content="Auténtica cocina italiana desde 1996. Pizza artesana en Arrecife, Lanzarote.">
+  <meta property="og:type" content="restaurant">
+
+  <!-- Tipografías -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* ══════════════════════════════════════════════
+       VARIABLES & RESET
+    ══════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #FAFAF5;
+      --cream:    #F0EAD8;
+      --red:      #C8301E;
+      --red-dark: #9E2315;
+      --dark:     #1A1A18;
+      --muted:    #6B6058;
+      --white:    #FFFFFF;
+      --mustard:  #D4A843;
+      --green-wa: #25D366;
+
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-body:    'DM Sans', system-ui, sans-serif;
+
+      --max-w: 1280px;
+      --pad:   clamp(24px, 5vw, 80px);
+    }
+
+    html { scroll-behavior: auto; } /* Lenis maneja el scroll */
+
+    body {
+      background: var(--bg);
+      color: var(--dark);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+      cursor: none; /* cursor custom */
+    }
+
+    img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: none; border: none; background: none; font-family: inherit; }
+
+    /* ══════════════════════════════════════════════
+       CURSOR PERSONALIZADO
+    ══════════════════════════════════════════════ */
+    .cursor-ring {
+      position: fixed;
+      width: 36px; height: 36px;
+      border: 1.5px solid var(--red);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.3s ease, height 0.3s ease, border-color 0.3s ease;
+      mix-blend-mode: multiply;
+    }
+    .cursor-dot {
+      position: fixed;
+      width: 6px; height: 6px;
+      background: var(--red);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+    }
+    .cursor-ring.hover {
+      width: 60px; height: 60px;
+      border-color: var(--red);
+      opacity: 0.5;
+    }
+
+    /* ══════════════════════════════════════════════
+       NAVBAR
+    ══════════════════════════════════════════════ */
+    .navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 0 var(--pad);
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(250, 250, 245, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(200, 48, 30, 0.08);
+      transition: box-shadow 0.3s ease;
+    }
+    .navbar.scrolled {
+      box-shadow: 0 2px 30px rgba(26,26,24,0.06);
+    }
+
+    .nav-logo {
+      display: flex;
+      flex-direction: column;
+      line-height: 1;
+      gap: 2px;
+    }
+    .nav-logo-name {
+      font-family: var(--font-display);
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--red);
+      letter-spacing: -0.5px;
+    }
+    .nav-logo-sub {
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 40px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      color: var(--dark);
+      position: relative;
+      padding-bottom: 2px;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 0; height: 1px;
+      background: var(--red);
+      transition: width 0.3s ease;
+    }
+    .nav-links a:hover::after { width: 100%; }
+
+    .btn-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      background: var(--red);
+      color: var(--white);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      border-radius: 3px;
+      transition: background 0.25s ease, transform 0.2s ease;
+    }
+    .btn-nav:hover {
+      background: var(--red-dark);
+      transform: translateY(-1px);
+    }
+
+    /* ══════════════════════════════════════════════
+       HERO
+    ══════════════════════════════════════════════ */
+    .hero {
+      position: relative;
+      height: 100svh;
+      min-height: 640px;
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+      padding: 0 var(--pad) 80px;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background: #1a0e08; /* fallback mientras carga la foto */
+    }
+    .hero-bg img {
+      opacity: 0.75;
+    }
+
+    /* Overlay con gradiente: oscuro abajo, más claro arriba */
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(10,6,4,0.15) 0%,
+        rgba(10,6,4,0.25) 40%,
+        rgba(10,6,4,0.72) 100%
+      );
+      z-index: 1;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: var(--max-w);
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .hero-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .hero-eyebrow-line {
+      width: 40px;
+      height: 1px;
+      background: var(--mustard);
+    }
+    .hero-eyebrow span {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 3.5px;
+      text-transform: uppercase;
+      color: var(--mustard);
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(90px, 14vw, 200px);
+      font-weight: 700;
+      line-height: 0.88;
+      color: var(--white);
+      letter-spacing: -3px;
+      margin-bottom: 24px;
+    }
+
+    .hero-sub {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: clamp(18px, 2.2vw, 28px);
+      color: rgba(255,255,255,0.78);
+      max-width: 520px;
+      margin-bottom: 44px;
+      line-height: 1.4;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      padding: 14px 32px;
+      background: var(--red);
+      color: var(--white);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      border-radius: 3px;
+      transition: background 0.25s ease, transform 0.2s ease;
+    }
+    .btn-primary:hover {
+      background: var(--red-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      padding: 13px 32px;
+      border: 1.5px solid rgba(255,255,255,0.7);
+      color: var(--white);
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.4px;
+      border-radius: 3px;
+      transition: border-color 0.25s ease, background 0.25s ease, transform 0.2s ease;
+    }
+    .btn-outline:hover {
+      border-color: var(--white);
+      background: rgba(255,255,255,0.1);
+      transform: translateY(-2px);
+    }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 36px;
+      right: var(--pad);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .hero-scroll span {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      writing-mode: vertical-rl;
+    }
+    .scroll-line {
+      width: 1px;
+      height: 48px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent);
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.3; transform: scaleY(1); }
+      50% { opacity: 0.8; transform: scaleY(1.1); }
+    }
+
+    /* ══════════════════════════════════════════════
+       MARQUEE
+    ══════════════════════════════════════════════ */
+    .marquee-section {
+      background: var(--red);
+      height: 60px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+    }
+    .marquee-track {
+      display: flex;
+      gap: 0;
+      white-space: nowrap;
+      animation: marqueeScroll 28s linear infinite;
+    }
+    .marquee-track span {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.9);
+      padding: 0 32px;
+    }
+    .marquee-track .sep {
+      color: rgba(255,255,255,0.4);
+      padding: 0 8px;
+      letter-spacing: 0;
+    }
+    @keyframes marqueeScroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* ══════════════════════════════════════════════
+       PROPUESTA DE VALOR
+    ══════════════════════════════════════════════ */
+    .valor-section {
+      padding: 120px var(--pad);
+      max-width: var(--max-w);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .valor-img-wrap {
+      position: relative;
+      aspect-ratio: 4/5;
+      overflow: hidden;
+      border-radius: 4px;
+    }
+    .valor-img-wrap::after {
+      content: '';
+      position: absolute;
+      bottom: -20px;
+      right: -20px;
+      width: 70%;
+      height: 70%;
+      border: 1.5px solid var(--mustard);
+      border-radius: 4px;
+      z-index: -1;
+    }
+
+    .valor-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .valor-eyebrow-bar {
+      width: 32px;
+      height: 2px;
+      background: var(--red);
+      flex-shrink: 0;
+    }
+    .valor-eyebrow span {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--red);
+    }
+
+    .valor-title {
+      font-family: var(--font-display);
+      font-size: clamp(38px, 4.5vw, 58px);
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--dark);
+      margin-bottom: 24px;
+    }
+
+    .valor-text {
+      font-size: 16px;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 48px;
+      max-width: 440px;
+    }
+
+    .valor-puntos {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .valor-punto {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .valor-punto-bar {
+      width: 3px;
+      height: 44px;
+      background: var(--red);
+      flex-shrink: 0;
+      margin-top: 2px;
+      border-radius: 2px;
+    }
+    .valor-punto-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 2px;
+    }
+    .valor-punto-desc {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* ══════════════════════════════════════════════
+       HIGHLIGHTS CARTA
+    ══════════════════════════════════════════════ */
+    .carta-section {
+      background: var(--cream);
+      padding: 120px var(--pad);
+    }
+    .carta-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 64px;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(42px, 5.5vw, 68px);
+      font-weight: 700;
+      line-height: 1.0;
+      color: var(--dark);
+    }
+    .section-sub {
+      font-size: 15px;
+      color: var(--muted);
+      max-width: 320px;
+      text-align: right;
+      line-height: 1.6;
+    }
+
+    .pizzas-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+
+    .pizza-card {
+      background: var(--white);
+      border-radius: 4px;
+      overflow: hidden;
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+    }
+    .pizza-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 24px 60px rgba(26,26,24,0.1);
+    }
+    .pizza-card-img {
+      aspect-ratio: 4/3;
+      overflow: hidden;
+      background: var(--cream);
+      position: relative;
+    }
+    .pizza-card-img img {
+      transition: transform 0.6s ease;
+    }
+    .pizza-card:hover .pizza-card-img img {
+      transform: scale(1.05);
+    }
+
+    /* Placeholder mientras no hay imagen */
+    .img-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #e8dfd4;
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      font-weight: 500;
+    }
+
+    .pizza-card-body {
+      padding: 24px 24px 28px;
+    }
+    .pizza-card-nombre {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 8px;
+    }
+    .pizza-card-ing {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .pizza-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pizza-card-precio {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--red);
+    }
+    .pizza-card-tag {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .carta-cta {
+      text-align: center;
+      margin-top: 56px;
+    }
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 32px;
+      border: 1.5px solid var(--red);
+      color: var(--red);
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      border-radius: 3px;
+      transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease;
+    }
+    .btn-ghost:hover {
+      background: var(--red);
+      color: var(--white);
+      transform: translateY(-2px);
+    }
+    .btn-ghost svg {
+      transition: transform 0.3s ease;
+    }
+    .btn-ghost:hover svg {
+      transform: translateX(4px);
+    }
+
+    /* ══════════════════════════════════════════════
+       ESTADÍSTICAS
+    ══════════════════════════════════════════════ */
+    .stats-section {
+      background: var(--red);
+      padding: 80px var(--pad);
+    }
+    .stats-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+    }
+    .stat-item {
+      text-align: center;
+      position: relative;
+    }
+    .stat-item:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: 0; top: 50%;
+      transform: translateY(-50%);
+      width: 1px; height: 60px;
+      background: rgba(255,255,255,0.2);
+    }
+    .stat-num {
+      font-family: var(--font-display);
+      font-size: clamp(56px, 7vw, 88px);
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1;
+      display: block;
+    }
+    .stat-label {
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.65);
+      margin-top: 8px;
+      display: block;
+    }
+
+    /* ══════════════════════════════════════════════
+       GALERÍA
+    ══════════════════════════════════════════════ */
+    .galeria-section {
+      padding: 120px var(--pad);
+      background: var(--bg);
+    }
+    .galeria-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+    }
+    .galeria-header {
+      margin-bottom: 56px;
+    }
+    .galeria-grid {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr 1fr;
+      grid-template-rows: 260px 260px;
+      gap: 12px;
+    }
+    .gal-item {
+      overflow: hidden;
+      border-radius: 4px;
+      background: var(--cream);
+      position: relative;
+    }
+    .gal-item img {
+      transition: transform 0.6s ease;
+    }
+    .gal-item:hover img {
+      transform: scale(1.06);
+    }
+    .gal-item-1 {
+      grid-row: 1 / 3;
+    }
+
+    /* ══════════════════════════════════════════════
+       TESTIMONIOS
+    ══════════════════════════════════════════════ */
+    .testi-section {
+      background: var(--cream);
+      padding: 120px var(--pad);
+    }
+    .testi-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+    }
+    .testi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 64px;
+    }
+    .testi-card {
+      background: var(--white);
+      padding: 36px 32px;
+      border-radius: 4px;
+      position: relative;
+    }
+    .testi-card::before {
+      content: '"';
+      font-family: var(--font-display);
+      font-size: 80px;
+      color: var(--red);
+      opacity: 0.12;
+      position: absolute;
+      top: 8px; left: 24px;
+      line-height: 1;
+    }
+    .testi-stars {
+      color: var(--mustard);
+      font-size: 14px;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+    }
+    .testi-text {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 19px;
+      color: var(--dark);
+      line-height: 1.55;
+      margin-bottom: 28px;
+    }
+    .testi-autor {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .testi-autor-line {
+      width: 24px;
+      height: 1px;
+      background: var(--red);
+      flex-shrink: 0;
+    }
+    .testi-autor-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+    .testi-autor-city {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ══════════════════════════════════════════════
+       CTA RESERVAS
+    ══════════════════════════════════════════════ */
+    .cta-section {
+      position: relative;
+      height: 520px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cta-bg {
+      position: absolute;
+      inset: 0;
+      background: #1a0e08;
+    }
+    .cta-bg img {
+      opacity: 0.5;
+    }
+    .cta-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(10,4,2,0.75) 0%, rgba(26,14,8,0.6) 100%);
+    }
+    .cta-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 0 var(--pad);
+    }
+    .cta-eyebrow {
+      font-size: 11px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--mustard);
+      margin-bottom: 20px;
+      display: block;
+    }
+    .cta-title {
+      font-family: var(--font-display);
+      font-size: clamp(52px, 8vw, 100px);
+      font-weight: 700;
+      color: var(--white);
+      line-height: 0.9;
+      letter-spacing: -1px;
+      margin-bottom: 24px;
+    }
+    .cta-sub {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: clamp(16px, 2vw, 22px);
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 44px;
+    }
+    .cta-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-whatsapp {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px 36px;
+      background: var(--green-wa);
+      color: var(--white);
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 3px;
+      transition: opacity 0.25s ease, transform 0.2s ease;
+    }
+    .btn-whatsapp:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+    .btn-whatsapp svg { flex-shrink: 0; }
+
+    .cta-tel {
+      font-size: 13px;
+      color: rgba(255,255,255,0.45);
+      margin-top: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ══════════════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════════════ */
+    .footer {
+      background: var(--dark);
+      padding: 72px var(--pad) 36px;
+    }
+    .footer-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+    }
+    .footer-top {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 48px;
+      padding-bottom: 56px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .footer-logo-name {
+      font-family: var(--font-display);
+      font-size: 42px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -1px;
+    }
+    .footer-logo-sub {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .footer-address {
+      font-size: 13px;
+      color: rgba(255,255,255,0.45);
+      line-height: 1.8;
+      margin-top: 20px;
+    }
+    .footer-col-title {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 20px;
+    }
+    .footer-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .footer-links a {
+      font-size: 14px;
+      color: rgba(255,255,255,0.55);
+      transition: color 0.2s ease;
+    }
+    .footer-links a:hover { color: var(--white); }
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 28px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-copy {
+      font-size: 12px;
+      color: rgba(255,255,255,0.25);
+    }
+    .footer-copy a {
+      color: rgba(255,255,255,0.4);
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s ease;
+    }
+    .footer-copy a:hover {
+      border-color: rgba(255,255,255,0.4);
+    }
+
+    /* WhatsApp flotante */
+    .whatsapp-float {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      z-index: 200;
+      width: 54px; height: 54px;
+      background: var(--green-wa);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(37,211,102,0.4);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .whatsapp-float:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 28px rgba(37,211,102,0.55);
+    }
+    .whatsapp-float::before {
+      content: '';
+      position: absolute;
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      background: rgba(37,211,102,0.35);
+      animation: waPulse 2.5s ease-out infinite;
+    }
+    @keyframes waPulse {
+      0% { transform: scale(1); opacity: 0.7; }
+      100% { transform: scale(2); opacity: 0; }
+    }
+
+    /* ══════════════════════════════════════════════
+       ANIMACIONES — estados iniciales GSAP
+    ══════════════════════════════════════════════ */
+    .reveal-up    { opacity: 0; transform: translateY(50px); }
+    .reveal-left  { opacity: 0; transform: translateX(-60px); }
+    .reveal-right { opacity: 0; transform: translateX(60px); }
+    .reveal-scale { opacity: 0; transform: scale(0.9); }
+
+    /* ══════════════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════════════ */
+    @media (max-width: 1024px) {
+      .pizzas-grid    { grid-template-columns: repeat(2, 1fr); }
+      .testi-grid     { grid-template-columns: repeat(2, 1fr); }
+      .footer-top     { grid-template-columns: 1fr 1fr; }
+      .galeria-grid   {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 220px 220px 220px;
+      }
+      .gal-item-1 { grid-row: 1 / 2; grid-column: 1 / 3; }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links, .btn-nav { display: none; }
+      .valor-section {
+        grid-template-columns: 1fr;
+        gap: 48px;
+        padding: 80px var(--pad);
+      }
+      .valor-img-wrap::after { display: none; }
+      .pizzas-grid    { grid-template-columns: 1fr; }
+      .stats-inner    { grid-template-columns: 1fr; gap: 40px; }
+      .stat-item::after { display: none; }
+      .testi-grid     { grid-template-columns: 1fr; }
+      .galeria-grid   { grid-template-columns: 1fr; grid-template-rows: auto; }
+      .gal-item-1     { grid-row: auto; grid-column: auto; aspect-ratio: 16/9; }
+      .gal-item       { aspect-ratio: 4/3; height: auto; }
+      .footer-top     { grid-template-columns: 1fr 1fr; }
+      .section-header { flex-direction: column; }
+      .section-sub    { text-align: left; }
+      .cursor-ring, .cursor-dot { display: none; }
+      body { cursor: auto; }
+      button, a { cursor: pointer; }
+      .cta-section { height: auto; padding: 100px var(--pad); }
+    }
+
+    @media (max-width: 480px) {
+      .footer-top { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-  <h1>Hola mundo</h1>
+
+  <!-- CURSOR -->
+  <div class="cursor-ring" id="cursorRing"></div>
+  <div class="cursor-dot" id="cursorDot"></div>
+
+  <!-- WHATSAPP FLOTANTE -->
+  <a href="https://wa.me/34928814749?text=Hola,%20quería%20hacer%20una%20reserva" target="_blank" class="whatsapp-float" aria-label="Reservar por WhatsApp">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+    </svg>
+  </a>
+
+  <!-- ═══════ NAVBAR ═══════ -->
+  <nav class="navbar" id="navbar">
+    <a href="#inicio" class="nav-logo">
+      <span class="nav-logo-name">Gigi</span>
+      <span class="nav-logo-sub">Pizzeria Italiana</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#carta">Carta</a></li>
+      <li><a href="#nosotros">Nosotros</a></li>
+      <li><a href="#reservas">Reservas</a></li>
+      <li><a href="#contacto">Contacto</a></li>
+    </ul>
+    <a href="https://wa.me/34928814749?text=Hola,%20quería%20hacer%20una%20reserva" target="_blank" class="btn-nav">Reservar mesa</a>
+  </nav>
+
+  <!-- ═══════ HERO ═══════ -->
+  <section class="hero" id="inicio">
+    <div class="hero-bg">
+      <!--
+        FOTO HERO: Sustituye la siguiente imagen por la foto del cocinero (img 7)
+        Descarga la foto, ponla en la misma carpeta y cambia src="foto-cocinero.jpg"
+      -->
+      <div class="img-placeholder" style="position:absolute;inset:0;background:#2a1a10;color:rgba(255,255,255,0.3);font-size:12px;letter-spacing:2px;display:flex;align-items:center;justify-content:center;">
+        FOTO HERO — cocinero preparando pizzas
+      </div>
+    </div>
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content">
+      <div class="hero-eyebrow reveal-up">
+        <div class="hero-eyebrow-line"></div>
+        <span>Pizzeria Italiana · Desde 1996 · Arrecife</span>
+      </div>
+      <h1 class="hero-title reveal-up">Gigi</h1>
+      <p class="hero-sub reveal-up">La auténtica pizza italiana en el corazón de Arrecife</p>
+      <div class="hero-actions reveal-up">
+        <a href="#carta" class="btn-primary">Ver la carta</a>
+        <a href="https://wa.me/34928814749?text=Hola,%20quería%20hacer%20una%20reserva" target="_blank" class="btn-outline">Reservar mesa</a>
+      </div>
+    </div>
+
+    <div class="hero-scroll">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- ═══════ MARQUEE ═══════ -->
+  <div class="marquee-section" aria-hidden="true">
+    <div class="marquee-track" id="marqueeTrack">
+      <span>Desde 1996</span><span class="sep">·</span>
+      <span>Pizza artesana</span><span class="sep">·</span>
+      <span>Arrecife, Lanzarote</span><span class="sep">·</span>
+      <span>Más de 30 variedades</span><span class="sep">·</span>
+      <span>Cocina italiana auténtica</span><span class="sep">·</span>
+      <span>Horno de leña</span><span class="sep">·</span>
+      <span>Ingredientes frescos</span><span class="sep">·</span>
+      <!-- Duplicado para loop continuo -->
+      <span>Desde 1996</span><span class="sep">·</span>
+      <span>Pizza artesana</span><span class="sep">·</span>
+      <span>Arrecife, Lanzarote</span><span class="sep">·</span>
+      <span>Más de 30 variedades</span><span class="sep">·</span>
+      <span>Cocina italiana auténtica</span><span class="sep">·</span>
+      <span>Horno de leña</span><span class="sep">·</span>
+      <span>Ingredientes frescos</span><span class="sep">·</span>
+    </div>
+  </div>
+
+  <!-- ═══════ PROPUESTA DE VALOR ═══════ -->
+  <section id="nosotros">
+    <div class="valor-section">
+      <div class="valor-img-wrap reveal-left">
+        <!--
+          FOTO: Ensalada caprese con vino blanco (img 5)
+          Cambia src="foto-caprese.jpg"
+        -->
+        <div class="img-placeholder" style="height:100%;background:#d4c8b8;">
+          FOTO — Caprese con vino blanco (img 5)
+        </div>
+      </div>
+
+      <div class="reveal-right">
+        <div class="valor-eyebrow">
+          <div class="valor-eyebrow-bar"></div>
+          <span>Por qué Gigi</span>
+        </div>
+        <h2 class="valor-title">No es solo pizza.<br>Es una tradición.</h2>
+        <p class="valor-text">
+          Llevamos casi 30 años elaborando pizzas como se hacen en Italia: masa artesana, ingredientes frescos y recetas que han pasado de generación en generación. Cada pizza que sale de nuestra cocina lleva el cuidado de quien ama lo que hace.
+        </p>
+        <div class="valor-puntos">
+          <div class="valor-punto">
+            <div class="valor-punto-bar"></div>
+            <div>
+              <div class="valor-punto-title">Masa artesana</div>
+              <div class="valor-punto-desc">Elaborada a diario con fermentación lenta</div>
+            </div>
+          </div>
+          <div class="valor-punto">
+            <div class="valor-punto-bar"></div>
+            <div>
+              <div class="valor-punto-title">Ingredientes frescos</div>
+              <div class="valor-punto-desc">Seleccionados cada mañana para cada servicio</div>
+            </div>
+          </div>
+          <div class="valor-punto">
+            <div class="valor-punto-bar"></div>
+            <div>
+              <div class="valor-punto-title">Recetas originales</div>
+              <div class="valor-punto-desc">Auténtica cocina italiana desde 1996</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ HIGHLIGHTS CARTA ═══════ -->
+  <section class="carta-section" id="carta">
+    <div class="carta-inner">
+      <div class="section-header">
+        <h2 class="section-title reveal-up">Nuestras<br>pizzas</h2>
+        <p class="section-sub reveal-up">Más de 30 variedades. Masa artesana, ingredientes frescos y mucho amor.</p>
+      </div>
+
+      <div class="pizzas-grid">
+
+        <div class="pizza-card reveal-up">
+          <div class="pizza-card-img">
+            <!-- img 2 — pizza gambas -->
+            <div class="img-placeholder">FOTO — Mare e Monti (img 2)</div>
+          </div>
+          <div class="pizza-card-body">
+            <div class="pizza-card-nombre">Mare e Monti</div>
+            <div class="pizza-card-ing">Tomate, queso, gambas, champiñones, aceite de ajo</div>
+            <div class="pizza-card-footer">
+              <span class="pizza-card-precio">€13,50</span>
+              <span class="pizza-card-tag">Especialidad</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pizza-card reveal-up">
+          <div class="pizza-card-img">
+            <!-- img 9 — pizza 4 quesos -->
+            <div class="img-placeholder">FOTO — 4 Formaggi (img 9)</div>
+          </div>
+          <div class="pizza-card-body">
+            <div class="pizza-card-nombre">4 Formaggi</div>
+            <div class="pizza-card-ing">Tomate, queso, 4 quesos diferentes</div>
+            <div class="pizza-card-footer">
+              <span class="pizza-card-precio">€11,00</span>
+              <span class="pizza-card-tag">Clásica</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="pizza-card reveal-up">
+          <div class="pizza-card-img">
+            <!-- img 1 — calzone -->
+            <div class="img-placeholder">FOTO — Calzone (img 1)</div>
+          </div>
+          <div class="pizza-card-body">
+            <div class="pizza-card-nombre">Calzone</div>
+            <div class="pizza-card-ing">Tomate, queso, jamón, chorizo</div>
+            <div class="pizza-card-footer">
+              <span class="pizza-card-precio">€11,00</span>
+              <span class="pizza-card-tag">Diferente</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="carta-cta reveal-up">
+        <a href="#" class="btn-ghost">
+          Ver carta completa
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ ESTADÍSTICAS ═══════ -->
+  <section class="stats-section">
+    <div class="stats-inner">
+      <div class="stat-item">
+        <span class="stat-num" data-target="30">0</span>
+        <span class="stat-label">años en Arrecife</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num" data-target="30" data-prefix="+">0</span>
+        <span class="stat-label">variedades de pizza</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num" data-target="4.5" data-prefix="★ " data-decimal="1">0</span>
+        <span class="stat-label">valoración en Google</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ GALERÍA ═══════ -->
+  <section class="galeria-section">
+    <div class="galeria-inner">
+      <div class="galeria-header">
+        <h2 class="section-title reveal-up">Ven a<br>conocernos</h2>
+      </div>
+
+      <div class="galeria-grid">
+        <div class="gal-item gal-item-1 reveal-scale">
+          <!-- img 7 — cocinero -->
+          <div class="img-placeholder" style="height:100%;background:#c8bdb0;">FOTO — Cocinero (img 7)</div>
+        </div>
+        <div class="gal-item reveal-up">
+          <!-- img 4 — pizza capricciosa -->
+          <div class="img-placeholder" style="height:100%;background:#d4c4b4;">FOTO — Pizza (img 4)</div>
+        </div>
+        <div class="gal-item reveal-up">
+          <!-- img 5 — caprese -->
+          <div class="img-placeholder" style="height:100%;background:#c8beac;">FOTO — Caprese (img 5)</div>
+        </div>
+        <div class="gal-item reveal-up">
+          <!-- img 3 — tiramisu -->
+          <div class="img-placeholder" style="height:100%;background:#d8cfc4;">FOTO — Tiramisu (img 3)</div>
+        </div>
+        <div class="gal-item reveal-up">
+          <!-- img 6 — cervezas -->
+          <div class="img-placeholder" style="height:100%;background:#c4bdb4;">FOTO — Bebidas (img 6)</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ TESTIMONIOS ═══════ -->
+  <section class="testi-section">
+    <div class="testi-inner">
+      <h2 class="section-title reveal-up">Lo que dicen<br>nuestros clientes</h2>
+
+      <div class="testi-grid">
+        <div class="testi-card reveal-up">
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-text">La mejor pizza que he probado en Lanzarote. La masa es increíble, muy fina y crujiente. Volveremos sin duda.</p>
+          <div class="testi-autor">
+            <div class="testi-autor-line"></div>
+            <div>
+              <div class="testi-autor-name">María G.</div>
+              <div class="testi-autor-city">Arrecife</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testi-card reveal-up">
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-text">Sitio acogedor, servicio amable y pizzas deliciosas. El calzone es espectacular. Muy recomendable.</p>
+          <div class="testi-autor">
+            <div class="testi-autor-line"></div>
+            <div>
+              <div class="testi-autor-name">Carlos R.</div>
+              <div class="testi-autor-city">Arrecife</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testi-card reveal-up">
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-text">Llevamos años viniendo y siempre está igual de bueno. La mare e monti es nuestra favorita. Un clásico.</p>
+          <div class="testi-autor">
+            <div class="testi-autor-line"></div>
+            <div>
+              <div class="testi-autor-name">Laura T.</div>
+              <div class="testi-autor-city">Las Palmas</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════ CTA RESERVAS ═══════ -->
+  <section class="cta-section" id="reservas">
+    <div class="cta-bg">
+      <!-- img 2 — pizza gambas, de fondo -->
+      <div class="img-placeholder" style="position:absolute;inset:0;background:#1a0e08;color:rgba(255,255,255,0.2);font-size:11px;letter-spacing:2px;display:flex;align-items:center;justify-content:center;">
+        FOTO FONDO — Pizza gambas (img 2)
+      </div>
+    </div>
+    <div class="cta-overlay"></div>
+    <div class="cta-content">
+      <span class="cta-eyebrow">Reservas</span>
+      <h2 class="cta-title reveal-up">¿Lista<br>tu mesa?</h2>
+      <p class="cta-sub reveal-up">Reserva ahora y disfruta de la mejor pizza de Arrecife</p>
+      <div class="cta-buttons reveal-up">
+        <a href="https://wa.me/34928814749?text=Hola,%20quería%20hacer%20una%20reserva" target="_blank" class="btn-whatsapp">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Reservar por WhatsApp
+        </a>
+      </div>
+      <p class="cta-tel reveal-up">O llámanos al 928 814 749</p>
+    </div>
+  </section>
+
+  <!-- ═══════ FOOTER ═══════ -->
+  <footer class="footer" id="contacto">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div>
+          <div class="footer-logo-name">Gigi</div>
+          <div class="footer-logo-sub">Pizzeria Italiana · Desde 1996</div>
+          <p class="footer-address">
+            C. Canalejas, 29<br>
+            35500 Arrecife, Las Palmas<br>
+            Tel: 928 814 749
+          </p>
+        </div>
+        <div>
+          <div class="footer-col-title">Menú</div>
+          <ul class="footer-links">
+            <li><a href="#carta">Carta</a></li>
+            <li><a href="#nosotros">Nosotros</a></li>
+            <li><a href="#reservas">Reservas</a></li>
+            <li><a href="#contacto">Contacto</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">Horario</div>
+          <ul class="footer-links">
+            <li><a href="#">Lunes — Viernes</a></li>
+            <li><a href="#">13:00 — 15:30</a></li>
+            <li><a href="#">20:00 — 23:00</a></li>
+            <li><a href="#">Sábados y domingos</a></li>
+            <li><a href="#">13:00 — 23:30</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">Síguenos</div>
+          <ul class="footer-links">
+            <li><a href="#" target="_blank">Instagram</a></li>
+            <li><a href="#" target="_blank">Facebook</a></li>
+            <li><a href="https://wa.me/34928814749" target="_blank">WhatsApp</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span class="footer-copy">© 2025 Pizzeria Italiana Gigi · Diseñado por <a href="#">WebCraft Studio</a></span>
+        <span class="footer-copy"><a href="#">Política de privacidad</a> · <a href="#">Aviso legal</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ═══════ SCRIPTS ═══════ -->
+  <script src="https://unpkg.com/lenis@1.3.23/dist/lenis.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <script>
+    // ── GSAP SETUP ──────────────────────────────────────────────
+    gsap.registerPlugin(ScrollTrigger);
+
+    // ── LENIS + GSAP ────────────────────────────────────────────
+    const lenis = new Lenis({ autoRaf: false, lerp: 0.08 });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+    gsap.ticker.lagSmoothing(0);
+
+    // ── CURSOR ──────────────────────────────────────────────────
+    const ring = document.getElementById('cursorRing');
+    const dot  = document.getElementById('cursorDot');
+    if (ring && dot) {
+      window.addEventListener('mousemove', (e) => {
+        gsap.to(ring, { x: e.clientX, y: e.clientY, duration: 0.45, ease: 'power2.out' });
+        gsap.to(dot,  { x: e.clientX, y: e.clientY, duration: 0.08 });
+      });
+      document.querySelectorAll('a, button, .pizza-card').forEach(el => {
+        el.addEventListener('mouseenter', () => ring.classList.add('hover'));
+        el.addEventListener('mouseleave', () => ring.classList.remove('hover'));
+      });
+    }
+
+    // ── NAVBAR SCROLL ───────────────────────────────────────────
+    const navbar = document.getElementById('navbar');
+    ScrollTrigger.create({
+      start: 'top -60',
+      onUpdate: (self) => {
+        navbar.classList.toggle('scrolled', self.scroll() > 60);
+      }
+    });
+
+    // ── HERO ANIMACIÓN DE ENTRADA ────────────────────────────────
+    const heroTl = gsap.timeline({ delay: 0.2 });
+    heroTl
+      .to('.hero-eyebrow',   { y: 0, opacity: 1, duration: 0.9, ease: 'power3.out' })
+      .to('.hero-title',     { y: 0, opacity: 1, duration: 1.1, ease: 'power4.out' }, '-=0.6')
+      .to('.hero-sub',       { y: 0, opacity: 1, duration: 0.9, ease: 'power3.out' }, '-=0.7')
+      .to('.hero-actions',   { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' }, '-=0.6')
+      .to('.hero-scroll',    { opacity: 1, duration: 0.6 }, '-=0.2');
+
+    // ── REVEAL ON SCROLL ─────────────────────────────────────────
+    // Elementos con reveal-up
+    gsap.utils.toArray('.reveal-up').forEach(el => {
+      // Evitar los del hero (ya animados)
+      if (el.closest('.hero')) return;
+      gsap.from(el, {
+        y: 50,
+        opacity: 0,
+        duration: 0.9,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: el,
+          start: 'top 88%',
+          once: true,
+        }
+      });
+    });
+
+    gsap.utils.toArray('.reveal-left').forEach(el => {
+      gsap.from(el, {
+        x: -70,
+        opacity: 0,
+        duration: 1,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: el, start: 'top 85%', once: true }
+      });
+    });
+
+    gsap.utils.toArray('.reveal-right').forEach(el => {
+      gsap.from(el, {
+        x: 70,
+        opacity: 0,
+        duration: 1,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: el, start: 'top 85%', once: true }
+      });
+    });
+
+    gsap.utils.toArray('.reveal-scale').forEach(el => {
+      gsap.from(el, {
+        scale: 0.92,
+        opacity: 0,
+        duration: 1,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: el, start: 'top 88%', once: true }
+      });
+    });
+
+    // Cards de pizza escalonadas
+    ScrollTrigger.batch('.pizza-card', {
+      onEnter: (batch) => gsap.to(batch, {
+        opacity: 1, y: 0,
+        stagger: 0.15, duration: 0.85, ease: 'power3.out',
+        overwrite: true
+      }),
+      start: 'top 88%',
+      once: true,
+    });
+
+    // Cards de testimonios escalonadas
+    ScrollTrigger.batch('.testi-card', {
+      onEnter: (batch) => gsap.to(batch, {
+        opacity: 1, y: 0,
+        stagger: 0.12, duration: 0.8, ease: 'power3.out',
+        overwrite: true
+      }),
+      start: 'top 88%',
+      once: true,
+    });
+
+    // ── PARALLAX HERO ────────────────────────────────────────────
+    gsap.to('.hero-bg', {
+      yPercent: 25,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '.hero',
+        start: 'top top',
+        end: 'bottom top',
+        scrub: true,
+      }
+    });
+
+    // ── CONTADORES ESTADÍSTICAS ──────────────────────────────────
+    document.querySelectorAll('.stat-num').forEach(el => {
+      const target   = parseFloat(el.dataset.target);
+      const prefix   = el.dataset.prefix || '';
+      const decimals = parseInt(el.dataset.decimal || '0');
+
+      ScrollTrigger.create({
+        trigger: el,
+        start: 'top 85%',
+        once: true,
+        onEnter: () => {
+          gsap.to({ val: 0 }, {
+            val: target,
+            duration: 2,
+            ease: 'power2.out',
+            onUpdate: function () {
+              const v = this.targets()[0].val;
+              el.textContent = prefix + (decimals > 0 ? v.toFixed(decimals) : Math.round(v));
+            }
+          });
+        }
+      });
+    });
+
+    // ── GALERÍA — aparece con escala ligeramente diferente ───────
+    gsap.utils.toArray('.gal-item').forEach((item, i) => {
+      gsap.from(item, {
+        opacity: 0,
+        scale: 0.95,
+        duration: 0.9,
+        ease: 'power3.out',
+        delay: i * 0.1,
+        scrollTrigger: { trigger: '.galeria-grid', start: 'top 80%', once: true }
+      });
+    });
+
+    // ── LÍNEA DECORATIVA VALOR — crece al entrar ─────────────────
+    gsap.from('.valor-eyebrow-bar', {
+      scaleX: 0,
+      transformOrigin: 'left center',
+      duration: 0.8,
+      ease: 'power3.out',
+      scrollTrigger: { trigger: '.valor-eyebrow', start: 'top 85%', once: true }
+    });
+
+  </script>
 </body>
 </html>

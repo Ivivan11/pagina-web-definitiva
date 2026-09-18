@@ -4,15 +4,290 @@
   box-sizing: border-box;
 }
 
+html, body {
+  height: 100%;
+}
+
 body {
+  background: #0d1117;
+  color: #e6e6e6;
+  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: #111;
+}
+
+#app {
+  width: 960px;
+  max-width: 100%;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* HUD */
+#hud {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 8px 12px;
+  background: #161b22;
+  border-radius: 8px 8px 0 0;
+  font-size: 14px;
+}
+
+#hud span {
+  opacity: 0.9;
+}
+
+#hud-level {
+  font-weight: 600;
+  margin-right: auto;
+}
+
+#camo-btn {
+  margin-left: auto;
+  background: none;
+  border: 1px solid #333c46;
+  border-radius: 6px;
+  font-size: 16px;
+  padding: 2px 10px;
+  cursor: pointer;
+}
+
+/* Canvas */
+#game-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 960 / 540;
+  background: #1b2230;
 }
 
 #game {
-  background: #222;
-  border: 2px solid #444;
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+}
+
+#hint-banner {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  max-width: 80%;
+  text-align: center;
+}
+
+#hint-banner.show {
+  opacity: 1;
+}
+
+/* Overlays sobre el canvas (muerte, completado, anuncio) */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+  background: rgba(10, 12, 16, 0.88);
+}
+
+.overlay-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.overlay button {
+  background: #f5c451;
+  color: #17191c;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.overlay button.secondary {
+  background: transparent;
+  color: #e6e6e6;
+  border: 1px solid #444c58;
+}
+
+#interstitial-overlay {
+  background: #05060a;
+}
+
+/* Menú */
+#menu-overlay {
+  position: static;
+  background: #10151c;
+  border-radius: 0 0 8px 8px;
+  padding: 24px;
+}
+
+#menu-overlay h1 {
+  font-size: 32px;
+}
+
+.tagline {
+  opacity: 0.75;
+  margin-bottom: 20px;
+}
+
+#level-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.level-btn {
+  background: #1b222c;
+  border: 1px solid #2a3240;
+  border-radius: 8px;
+  padding: 12px;
+  color: #e6e6e6;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.level-btn:hover {
+  border-color: #f5c451;
+}
+
+.level-btn-best {
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+#challenge-panel {
+  background: #1b222c;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+#challenge-panel h2 {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.challenge-row {
+  display: flex;
+  gap: 8px;
+}
+
+#challenge-input {
+  flex: 1;
+  background: #0d1117;
+  border: 1px solid #2a3240;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #e6e6e6;
+}
+
+#challenge-load-btn {
+  background: #5aa9e6;
+  color: #0d1117;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#challenge-status {
+  margin-top: 8px;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.footer-hint {
+  font-size: 13px;
+  opacity: 0.6;
+}
+
+kbd {
+  background: #2a3240;
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+/* Modo Camuflaje: pantalla falsa de Google Docs */
+#camo-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #f8f9fa;
+  color: #202124;
+  font-family: Arial, sans-serif;
+  cursor: default;
+}
+
+.camo-bar {
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 10px 20px;
+}
+
+.camo-bar-title {
+  font-size: 14px;
+}
+
+.camo-toolbar {
+  padding: 6px 20px;
+  font-size: 13px;
+  color: #444;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.camo-page {
+  max-width: 700px;
+  margin: 40px auto;
+  background: #fff;
+  padding: 60px 70px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  line-height: 1.6;
+}
+
+.camo-page h1 {
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+
+.camo-page p {
+  margin-bottom: 14px;
+  font-size: 14px;
+  color: #333;
+}
+
+@media (max-width: 640px) {
+  #hud {
+    font-size: 12px;
+    gap: 10px;
+  }
+  #menu-overlay h1 {
+    font-size: 26px;
+  }
 }

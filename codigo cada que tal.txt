@@ -1,3 +1,0 @@
-git add .
-git commit -m "prototipo cliente X"
-git push

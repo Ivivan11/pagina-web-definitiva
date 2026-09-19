@@ -624,18 +624,49 @@ function consumeEvents(level) {
 // ---------------------------------------------------------------------------
 // Render
 // ---------------------------------------------------------------------------
+// Toda la gracia del juego es que las baldosas mortales sean indistinguibles
+// del suelo bueno. Si cada una se dibuja por separado, los cantos entre bloques
+// delatan exactamente dónde está la trampa. Por eso los tramos contiguos a la
+// misma altura se funden en UNA sola losa antes de dibujar.
+function mergeGroundRuns(level) {
+  const merged = [];
+  const single = [];
+
+  const seamless = level.platforms.filter((t) => {
+    if (t.rangeX || t.rangeY) return false; // las móviles nunca se funden
+    if (t.kind === "solid" || t.kind === "fake") return true;
+    // una baldosa que se voltea es suelo normal hasta que la pisas
+    return t.kind === "flip" && !t.flipped && t.standTime === null;
+  });
+  const seamlessSet = new Set(seamless);
+  for (const t of level.platforms) if (!seamlessSet.has(t)) single.push(t);
+
+  seamless.sort((a, b) => a.cy - b.cy || a.cx - b.cx);
+  let run = null;
+  for (const t of seamless) {
+    if (run && t.cy === run.y && t.h === run.h && Math.abs(t.cx - (run.x + run.w)) < 0.6) {
+      run.w += t.w;
+    } else {
+      run = { x: t.cx, y: t.cy, w: t.w, h: t.h };
+      merged.push(run);
+    }
+  }
+  return { merged, single };
+}
+
 function drawTiles(level) {
-  for (const tile of level.platforms) {
+  const { merged, single } = mergeGroundRuns(level);
+  for (const run of merged) Theme.drawTile(ctx, run, "solid", { t: state.bgTime });
+
+  for (const tile of single) {
     const rect = { x: tile.cx, y: tile.cy, w: tile.w, h: tile.h };
 
     if (tile.kind === "flip") {
       if (tile.flipped) {
         Theme.drawSpikes(ctx, rect, "up", state.bgTime);
       } else {
-        // Antes de voltearse es indistinguible de una plataforma normal; solo
-        // un temblor mínimo durante la fracción de segundo previa.
-        let jitter = 0;
-        if (tile.standTime !== null) jitter = (Math.random() - 0.5) * 2.2;
+        // Ya pisada: tiembla la fracción de segundo previa a voltearse.
+        const jitter = (Math.random() - 0.5) * 2.2;
         Theme.drawTile(ctx, { x: rect.x + jitter, y: rect.y, w: rect.w, h: rect.h }, "solid", {
           t: state.bgTime,
         });

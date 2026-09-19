@@ -2,7 +2,8 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Camuflaje: un plataformas de trampas donde nada es lo que parece." />
   <title>Camuflaje</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -10,66 +11,95 @@
   <div id="app">
     <div id="hud" class="hidden">
       <span id="hud-level"></span>
-      <span id="hud-attempts"></span>
+      <span id="hud-deaths"></span>
       <span id="hud-timer"></span>
       <span id="hud-best"></span>
-      <button id="camo-btn" title="Modo Camuflaje (tecla `)">Camuflaje</button>
+      <span id="hud-ghost"></span>
+      <span class="hud-buttons">
+        <button id="pause-btn" title="Pausa (Esc)">Pausa</button>
+        <button id="mute-btn" title="Sonido (M)">Sonido: no</button>
+        <button id="camo-btn" title="Modo Camuflaje (tecla `)">Camuflaje</button>
+      </span>
     </div>
 
     <div id="game-wrap" class="hidden">
       <canvas id="game" width="960" height="540"></canvas>
-      <div id="hint-banner"></div>
 
-      <div id="death-overlay" class="overlay hidden">
-        <p id="death-text"></p>
-        <div class="overlay-actions">
-          <button id="retry-btn">Reintentar (Espacio)</button>
-          <button id="skip-btn" class="hidden">Saltar nivel (ver anuncio)</button>
-          <button id="menu-btn-death" class="secondary">Menú</button>
-        </div>
+      <div id="hint-banner"></div>
+      <div id="death-flash-text"></div>
+
+      <div id="skip-bar" class="hidden">
+        <span>¿Atascado?</span>
+        <button id="skip-btn">Saltar nivel (ver anuncio)</button>
       </div>
 
       <div id="complete-overlay" class="overlay hidden">
-        <p id="complete-text"></p>
+        <h2 id="complete-title"></h2>
+        <p id="complete-time" class="big-time"></p>
+        <p id="complete-best" class="muted"></p>
         <div class="overlay-actions">
-          <button id="share-btn">Copiar código de reto</button>
-          <button id="next-btn">Siguiente nivel (Espacio)</button>
+          <button id="next-btn">Siguiente nivel</button>
+          <button id="share-btn" class="secondary">Retar a un compañero</button>
           <button id="menu-btn-complete" class="secondary">Menú</button>
         </div>
       </div>
 
-      <div id="interstitial-overlay" class="overlay hidden">
-        <p>Anuncio</p>
+      <div id="pause-overlay" class="overlay hidden">
+        <h2>Pausa</h2>
+        <div class="overlay-actions">
+          <button id="resume-btn">Seguir</button>
+          <button id="restart-btn" class="secondary">Reiniciar nivel (R)</button>
+          <button id="ghost-toggle" class="secondary">Fantasmas: sí</button>
+          <button id="menu-btn-pause" class="secondary">Menú</button>
+        </div>
+      </div>
+
+      <div id="touch-controls" class="hidden">
+        <button id="touch-left" aria-label="Izquierda">◀</button>
+        <button id="touch-right" aria-label="Derecha">▶</button>
+        <button id="touch-jump" aria-label="Saltar">SALTAR</button>
       </div>
     </div>
 
-    <div id="menu-overlay" class="overlay">
-      <h1>Camuflaje</h1>
-      <p class="tagline">Nada es lo que parece. Cuidado con lo que pisas.</p>
+    <div id="menu-overlay">
+      <div class="menu-head">
+        <h1>Camuflaje</h1>
+        <p class="tagline">Nada es lo que parece. Cuidado con lo que pisas.</p>
+        <p id="menu-stats" class="muted"></p>
+      </div>
 
       <div id="level-grid"></div>
 
       <div id="challenge-panel">
         <h2>Reto de un compañero</h2>
+        <p class="muted small">Pega el código que te ha pasado y corre contra su fantasma.</p>
         <div class="challenge-row">
-          <input id="challenge-input" placeholder="Pega aquí el código de reto" />
-          <button id="challenge-load-btn">Cargar fantasma</button>
+          <input id="challenge-input" placeholder="Código de reto" autocomplete="off" spellcheck="false" />
+          <button id="challenge-load-btn">Aceptar reto</button>
         </div>
-        <p id="challenge-status"></p>
+        <p id="challenge-status" class="muted small"></p>
       </div>
 
-      <p class="footer-hint">Pulsa <kbd>`</kbd> en cualquier momento para camuflar la pantalla.</p>
+      <p class="footer-hint">
+        <kbd>←</kbd> <kbd>→</kbd> moverse · <kbd>Espacio</kbd> saltar · <kbd>R</kbd> reiniciar ·
+        <kbd>Esc</kbd> pausa · <kbd>`</kbd> camuflar la pantalla
+      </p>
     </div>
   </div>
 
-  <!-- Para publicar en Poki: cargar antes que ads.js y poner ADS_PROVIDER="poki".
+  <div id="transition"></div>
+
+  <!-- Al publicar en Poki: descomentar y poner window.ADS_PROVIDER = "poki" antes de ads.js
   <script src="//game-cdn.poki.com/scripts/v2/poki-sdk.js"></script> -->
-  <!-- Para publicar en CrazyGames: cargar antes que ads.js y poner ADS_PROVIDER="crazygames".
+  <!-- Al publicar en CrazyGames: descomentar y poner window.ADS_PROVIDER = "crazygames"
   <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script> -->
 
   <script src="src/engine.js"></script>
   <script src="src/levels.js"></script>
   <script src="src/replay.js"></script>
+  <script src="src/audio.js"></script>
+  <script src="src/fx.js"></script>
+  <script src="src/theme.js"></script>
   <script src="src/ads.js"></script>
   <script src="src/camo.js"></script>
   <script src="src/main.js"></script>

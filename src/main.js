@@ -19,7 +19,8 @@ const els = {};
   "camo-btn", "mute-btn", "pause-btn", "game-wrap", "hint-banner",
   "menu-overlay", "level-grid", "menu-stats", "challenge-input",
   "challenge-load-btn", "challenge-status", "complete-overlay", "complete-title",
-  "complete-time", "complete-best", "share-btn", "next-btn", "menu-btn-complete",
+  "complete-time", "complete-best", "complete-medal", "complete-token",
+  "share-btn", "next-btn", "menu-btn-complete",
   "pause-overlay", "resume-btn", "restart-btn", "menu-btn-pause", "ghost-toggle",
   "skip-bar", "skip-btn", "transition", "touch-controls", "touch-left",
   "touch-right", "touch-jump", "death-flash-text",
@@ -47,6 +48,21 @@ const state = {
   ghostsEnabled: true,
   transitioning: false,
 };
+
+const MEDALS = [
+  { id: "oro", label: "Oro", color: "#f5c451" },
+  { id: "plata", label: "Plata", color: "#c8d2de" },
+  { id: "bronce", label: "Bronce", color: "#c98a52" },
+];
+
+// Devuelve el índice de medalla (0 oro, 1 plata, 2 bronce) o -1 si no llega.
+function medalIndex(levelIndex, ms) {
+  const targets = LEVEL_DEFS[levelIndex].medals;
+  if (!targets) return -1;
+  const s = ms / 1000;
+  for (let i = 0; i < targets.length; i++) if (s <= targets[i]) return i;
+  return -1;
+}
 
 const DEATH_MESSAGES = {
   fake: ["Parecía suelo.", "Era idéntica. Y mentía.", "Esa baldosa te odia.", "Confiaste. Error."],
@@ -130,9 +146,16 @@ function renderMenu() {
   grid.innerHTML = "";
   let completed = 0;
 
+  let golds = 0;
+  let stickers = 0;
+
   LEVEL_DEFS.forEach((def, i) => {
     const stat = loadStat(i);
     if (stat.done) completed++;
+    if (stat.medal === 0) golds++;
+    if (stat.token) stickers++;
+
+    const medal = stat.medal != null ? MEDALS[stat.medal] : null;
     const btn = document.createElement("button");
     btn.className = "level-btn" + (stat.done ? " done" : "");
     btn.style.animationDelay = `${Math.min(i * 28, 400)}ms`;
@@ -140,7 +163,11 @@ function renderMenu() {
       `<span class="level-num">${String(i + 1).padStart(2, "0")}</span>` +
       `<span class="level-info"><span class="level-name">${def.name}</span>` +
       `<span class="level-best">${stat.done ? formatTime(stat.bestTimeMs) : "sin superar"}</span></span>` +
-      (stat.done ? '<span class="level-check">✓</span>' : "");
+      `<span class="level-marks">` +
+      (stat.token ? '<span class="level-token" title="Pegatina conseguida">★</span>' : "") +
+      (medal ? `<span class="level-medal" style="background:${medal.color}" title="Medalla de ${medal.label}"></span>` : "") +
+      (stat.done ? '<span class="level-check">✓</span>' : "") +
+      `</span>`;
     btn.addEventListener("click", () => {
       Sfx.unlock();
       Sfx.play("click");
@@ -150,7 +177,8 @@ function renderMenu() {
   });
 
   els["menu-stats"].textContent =
-    `${completed}/${LEVEL_DEFS.length} niveles superados · ${state.deathsTotal} muertes acumuladas`;
+    `${completed}/${LEVEL_DEFS.length} superados · ${golds} oros · ` +
+    `${stickers}/${LEVEL_DEFS.length} pegatinas · ${state.deathsTotal} muertes`;
 }
 
 function goToMenu() {
@@ -293,8 +321,32 @@ function onComplete() {
     stat.bestReplay = encodeReplay(state.levelIndex, state.recorder.frames);
   }
   stat.done = true;
+
+  const tokens = state.level.tokens;
+  const gotToken = tokens.length > 0 && tokens.every((t) => t.taken);
+  if (gotToken) stat.token = true;
+
+  const medal = medalIndex(state.levelIndex, finalMs);
+  if (medal >= 0 && (stat.medal == null || medal < stat.medal)) stat.medal = medal;
+
   saveStat(state.levelIndex, stat);
   state.lastRunCode = stat.bestReplay;
+
+  const medalEl = els["complete-medal"];
+  if (medal >= 0) {
+    medalEl.textContent = `Medalla de ${MEDALS[medal].label.toLowerCase()}`;
+    medalEl.style.color = MEDALS[medal].color;
+  } else {
+    const oro = LEVEL_DEFS[state.levelIndex].medals[0];
+    medalEl.textContent = `Sin medalla · el oro está en ${oro}s`;
+    medalEl.style.color = "";
+  }
+  els["complete-token"].textContent = gotToken
+    ? "Pegatina conseguida"
+    : stat.token
+    ? "Pegatina ya conseguida antes"
+    : "Te has dejado la pegatina escondida";
+  els["complete-token"].classList.toggle("got", gotToken || !!stat.token);
 
   const isLast = state.levelIndex === LEVEL_DEFS.length - 1;
   els["complete-title"].textContent = isLast ? "¡Te lo has pasado entero!" : improved ? "¡Nuevo récord!" : "¡Superado!";
@@ -527,6 +579,18 @@ function consumeEvents(level) {
       case "dropStart":
         Sfx.play("trapReveal", { volume: 0.4 });
         break;
+      case "token":
+        Sfx.play("win", { volume: 0.45, pitch: 1.5 });
+        FX.burst(ev.x, ev.y, {
+          count: 22,
+          colors: ["#f5c451", "#ffffff", "#5aa9e6"],
+          speed: 210,
+          spread: Math.PI * 2,
+          life: 0.7,
+          size: 4,
+        });
+        FX.floatText(ev.x, ev.y - 12, "¡Pegatina!", { color: "#f5c451" });
+        break;
       case "decoyEscape":
         Sfx.play("ghost");
         FX.burst(ev.x, ev.y + 40, { count: 20, color: "#2ecc71", speed: 190, spread: Math.PI * 2, life: 0.7 });
@@ -615,6 +679,35 @@ function groundUnder(entity, level) {
   return best;
 }
 
+function drawToken(tk, t) {
+  if (tk.taken) return;
+  const cx = tk.x + tk.w / 2;
+  const cy = tk.y + tk.h / 2 + Math.sin(t * 2.4) * 3;
+  const spin = Math.abs(Math.cos(t * 2.2)); // gira sobre su eje vertical
+  const halfW = (tk.w / 2) * (0.25 + spin * 0.75);
+
+  ctx.save();
+  ctx.globalAlpha = 0.25;
+  ctx.fillStyle = "#f5c451";
+  ctx.beginPath();
+  ctx.arc(cx, cy, tk.w * 0.85, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  ctx.fillStyle = "#f5c451";
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - tk.h / 2);
+  ctx.lineTo(cx + halfW, cy);
+  ctx.lineTo(cx, cy + tk.h / 2);
+  ctx.lineTo(cx - halfW, cy);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "rgba(255,255,255,0.75)";
+  ctx.fillRect(cx - halfW * 0.3, cy - tk.h * 0.28, Math.max(1, halfW * 0.3), tk.h * 0.3);
+  ctx.restore();
+}
+
 function render() {
   const level = state.level;
   const shake = FX.shakeOffset();
@@ -634,6 +727,8 @@ function render() {
     Theme.drawGoal(ctx, d, state.bgTime, false);
   }
   Theme.drawGoal(ctx, level.goal, state.bgTime, state.screen === "complete");
+
+  for (const tk of level.tokens) drawToken(tk, state.bgTime);
 
   if (state.rivalGhost && !state.rivalGhost.done) {
     Theme.drawCharacter(ctx, state.rivalGhost.player, {

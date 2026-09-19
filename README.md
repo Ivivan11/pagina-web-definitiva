@@ -4,6 +4,8 @@ Un plataformas de trampas para navegador donde nada es lo que parece: hay baldos
 
 18 niveles, cada uno con su trampa protagonista. Partidas de segundos, reinicio instantáneo al morir y un contador de muertes que no perdona.
 
+Cada nivel tiene además una **medalla de oro, plata o bronce** según el tiempo (los objetivos salen de partidas óptimas medidas, no inventadas) y una **pegatina escondida** fuera de la ruta cómoda: la del primer nivel está detrás del punto de salida, para que aprendas pronto a mirar atrás.
+
 ## Pensado para jugarse en el instituto
 
 - **Sin WebGL.** Todo es Canvas 2D puro, así que funciona en Chromebooks de gama baja y sobrevive a las políticas de Chrome gestionado que desactivan el contenido 3D (desde Chrome 144 ya no hay respaldo por software: un juego con WebGL simplemente no arranca en esos equipos).

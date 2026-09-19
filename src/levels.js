@@ -102,6 +102,10 @@ function dropSpikes(x, y, w, triggerX, triggerW) {
   };
 }
 
+// Pegatina escondida: una por nivel, siempre a un salto por encima de algo
+// pisable, pero fuera de la ruta cómoda. Solo cuenta si además terminas.
+const token = (x, y) => ({ x, y, w: 22, h: 22, taken: false });
+
 const decoy = (x, dist) => ({ x, y: GROUND_Y - 90, w: 40, h: 90, triggerDist: dist || 190, escaped: false });
 const goalAt = (x) => ({ x, y: GROUND_Y - 90, w: 40, h: 90 });
 
@@ -111,13 +115,17 @@ const LEVEL_DEFS = [
     hint: "Flechas o A/D para moverte. Espacio para saltar.",
     width: 1700,
     tint: "dawn",
+    medals: [6.0, 7.7, 10.6],
     build: () => ({
-      spawn: { x: 50, y: SPAWN_Y },
+      // Empieza algo más adelante para que la pegatina quede a la vista
+      // detrás de ti: el primer nivel ya enseña que hay que mirar atrás.
+      spawn: { x: 140, y: SPAWN_Y },
       goal: goalAt(1620),
       // Primer hueco cómodo: el salto máximo son ~178px, así que 100 perdona
       // que no saltes justo en el borde.
       platforms: [ground(0, 520), ground(620, 480), fakeGround(1100, 80), ground(1180, 520)],
       hazards: [spikes(520, 100)],
+      tokens: [token(40, 398)],
       decoys: [],
     }),
   },
@@ -126,6 +134,7 @@ const LEVEL_DEFS = [
     hint: "Hay tres baldosas que mienten. Suerte.",
     width: 1900,
     tint: "dawn",
+    medals: [7.1, 9.2, 12.6],
     build: () => ({
       spawn: { x: 50, y: SPAWN_Y },
       goal: goalAt(1820),
@@ -139,6 +148,7 @@ const LEVEL_DEFS = [
         ground(1370, 530),
       ],
       hazards: [],
+      tokens: [token(1250, 398)],
       decoys: [],
     }),
   },
@@ -147,6 +157,7 @@ const LEVEL_DEFS = [
     hint: "Si te paras, te caes.",
     width: 2000,
     tint: "night",
+    medals: [7.5, 9.7, 13.3],
     build: () => ({
       spawn: { x: 50, y: SPAWN_Y },
       goal: goalAt(1920),
@@ -162,6 +173,7 @@ const LEVEL_DEFS = [
         ground(1560, 440),
       ],
       hazards: [spikes(320, 460), spikes(1100, 460)],
+      tokens: [token(540, 398)],
       decoys: [],
     }),
   },
@@ -170,6 +182,7 @@ const LEVEL_DEFS = [
     hint: "Esa piedrecita del medio parece muy cómoda, ¿verdad?",
     width: 1900,
     tint: "night",
+    medals: [7.1, 9.2, 12.6],
     build: () => ({
       spawn: { x: 50, y: SPAWN_Y },
       goal: goalAt(1820),
@@ -181,6 +194,7 @@ const LEVEL_DEFS = [
         ground(1260, 640),
       ],
       hazards: [spikes(500, 130), spikes(1130, 130)],
+      tokens: [token(700, 398)],
       decoys: [],
     }),
   },
@@ -189,6 +203,7 @@ const LEVEL_DEFS = [
     hint: "Correr es la única defensa.",
     width: 2000,
     tint: "night",
+    medals: [7.5, 9.7, 13.3],
     build: () => ({
       spawn: { x: 50, y: SPAWN_Y },
       goal: goalAt(1920),
@@ -200,6 +215,7 @@ const LEVEL_DEFS = [
         dropSpikes(1020, 120, 70, 720, 80),
         dropSpikes(1440, 120, 70, 1140, 80),
       ],
+      tokens: [token(700, 398)],
       decoys: [],
     }),
   },
@@ -208,6 +224,7 @@ const LEVEL_DEFS = [
     hint: "Píselo y cuente hasta uno. No llegará.",
     width: 2000,
     tint: "sunset",
+    medals: [7.5, 9.7, 13.3],
     build: () => ({
       spawn: { x: 50, y: SPAWN_Y },
       goal: goalAt(1920),
@@ -221,6 +238,7 @@ const LEVEL_DEFS = [
         ground(830, 1170),
       ],
       hazards: [],
+      tokens: [token(560, 398)],
       decoys: [],
     }),
   },
@@ -229,6 +247,7 @@ const LEVEL_DEFS = [
     hint: "Súbete, pero no te acomodes.",
     width: 2100,
     tint: "sunset",
+    medals: [14.5, 18.8, 26],
     build: () => ({
       spawn: { x: 50, y: SPAWN_Y },
       goal: goalAt(2020),
@@ -242,6 +261,7 @@ const LEVEL_DEFS = [
         ground(1600, 500),
       ],
       hazards: [spikes(480, 1120)],
+      tokens: [token(990, 348)],
       decoys: [],
     }),
   },
@@ -250,6 +270,7 @@ const LEVEL_DEFS = [
     hint: "Las que parpadean avisan. Las demás no.",
     width: 2000,
     tint: "sunset",
+    medals: [7.5, 9.7, 13.3],
     build: () => ({
       spawn: { x: 50, y: SPAWN_Y },
       goal: goalAt(1920),
@@ -263,6 +284,7 @@ const LEVEL_DEFS = [
         ground(1150, 850),
       ],
       hazards: [spikes(400, 750)],
+      tokens: [token(915, 373)],
       decoys: [],
     }),
   },
@@ -271,6 +293,7 @@ const LEVEL_DEFS = [
     hint: "Un muelle es tu amigo. Hasta que mires hacia arriba.",
     width: 2200,
     tint: "void",
+    medals: [8.3, 10.7, 14.8],
     build: () => ({
       spawn: { x: 50, y: SPAWN_Y },
       goal: goalAt(2120),
@@ -284,6 +307,7 @@ const LEVEL_DEFS = [
         ground(1420, 780),
       ],
       hazards: [ceilingSpikes(1290, 165, 170), spikes(1040, 80)],
+      tokens: [token(700, 228)],
       decoys: [],
     }),
   },
@@ -292,6 +316,7 @@ const LEVEL_DEFS = [
     hint: "Lo que cuelga, cae.",
     width: 2200,
     tint: "void",
+    medals: [8.3, 10.7, 14.8],
     build: () => ({
       spawn: { x: 50, y: SPAWN_Y },
       goal: goalAt(2120),
@@ -304,6 +329,7 @@ const LEVEL_DEFS = [
         slam(1520, 130, 90, 70, 270, 1280, 90),
       ],
       hazards: [],
+      tokens: [token(1050, 328)],
       decoys: [],
     }),
   },
@@ -312,6 +338,7 @@ const LEVEL_DEFS = [
     hint: "La que no cruje es la que miente.",
     width: 2200,
     tint: "night",
+    medals: [8.3, 10.7, 14.8],
     build: () => ({
       spawn: { x: 50, y: SPAWN_Y },
       goal: goalAt(2120),
@@ -328,6 +355,7 @@ const LEVEL_DEFS = [
         ground(1560, 640),
       ],
       hazards: [spikes(300, 400), spikes(1030, 530)],
+      tokens: [token(620, 398)],
       decoys: [],
     }),
   },
@@ -336,6 +364,7 @@ const LEVEL_DEFS = [
     hint: "Casi lo tienes. Casi.",
     width: 2400,
     tint: "sunset",
+    medals: [9.1, 11.8, 16.2],
     build: () => ({
       spawn: { x: 50, y: SPAWN_Y },
       goal: goalAt(2320),
@@ -348,6 +377,7 @@ const LEVEL_DEFS = [
         ground(2000, 400),
       ],
       hazards: [spikes(1650, 350)],
+      tokens: [token(1750, 398)],
       decoys: [decoy(1150, 200)],
     }),
   },
@@ -356,6 +386,7 @@ const LEVEL_DEFS = [
     hint: "Si te la colaron una vez, te la cuelan dos.",
     width: 2300,
     tint: "night",
+    medals: [8.7, 11.2, 15.5],
     build: () => ({
       spawn: { x: 50, y: SPAWN_Y },
       goal: goalAt(2220),
@@ -369,6 +400,7 @@ const LEVEL_DEFS = [
         ground(1590, 710),
       ],
       hazards: [spikes(460, 130), spikes(1460, 130)],
+      tokens: [token(1055, 398)],
       decoys: [],
     }),
   },
@@ -377,6 +409,7 @@ const LEVEL_DEFS = [
     hint: "Sube, salta, y no mires abajo.",
     width: 2100,
     tint: "void",
+    medals: [13.7, 17.8, 24.5],
     build: () => ({
       spawn: { x: 50, y: SPAWN_Y },
       goal: goalAt(2020),
@@ -392,6 +425,7 @@ const LEVEL_DEFS = [
         spikes(420, 1000),
         movingSpikes(940, 240, 28, 58, { rangeY: 55, speed: 1.4, dir: "down" }),
       ],
+      tokens: [token(1260, 303)],
       decoys: [],
     }),
   },
@@ -400,6 +434,7 @@ const LEVEL_DEFS = [
     hint: "Ritmo. No pienses, corre.",
     width: 2500,
     tint: "dawn",
+    medals: [9.5, 12.3, 16.9],
     build: () => ({
       spawn: { x: 50, y: SPAWN_Y },
       goal: goalAt(2420),
@@ -418,6 +453,7 @@ const LEVEL_DEFS = [
         ground(1580, 920),
       ],
       hazards: [spikes(280, 1300)],
+      tokens: [token(870, 398)],
       decoys: [],
     }),
   },
@@ -426,6 +462,7 @@ const LEVEL_DEFS = [
     hint: "Ya conoces las piezas. Ahora vienen juntas.",
     width: 2400,
     tint: "void",
+    medals: [9.1, 11.8, 16.2],
     build: () => ({
       spawn: { x: 50, y: SPAWN_Y },
       goal: goalAt(2320),
@@ -442,6 +479,7 @@ const LEVEL_DEFS = [
         ground(2080, 320),
       ],
       hazards: [spikes(1090, 60)],
+      tokens: [token(620, 228)],
       decoys: [],
     }),
   },
@@ -450,6 +488,7 @@ const LEVEL_DEFS = [
     hint: "Aquí ya no hay pistas. Solo memoria.",
     width: 2400,
     tint: "night",
+    medals: [9.1, 11.8, 16.2],
     build: () => ({
       spawn: { x: 50, y: SPAWN_Y },
       goal: goalAt(2320),
@@ -467,6 +506,7 @@ const LEVEL_DEFS = [
         ground(1585, 815),
       ],
       hazards: [],
+      tokens: [token(1050, 398)],
       decoys: [],
     }),
   },
@@ -475,6 +515,7 @@ const LEVEL_DEFS = [
     hint: "La meta está ahí mismo. Eso es justo el problema.",
     width: 2980,
     tint: "void",
+    medals: [16.8, 21.8, 30],
     build: () => ({
       spawn: { x: 50, y: SPAWN_Y },
       goal: goalAt(2900),
@@ -495,6 +536,7 @@ const LEVEL_DEFS = [
         ground(2850, 130),
       ],
       hazards: [spikes(400, 520), spikes(1220, 385), spikes(2340, 40)],
+      tokens: [token(2530, 328)],
       decoys: [decoy(2300, 170)],
     }),
   },
@@ -511,6 +553,7 @@ function buildLevel(index) {
     width: def.width,
     height: LEVEL_CANVAS_H,
     tint: def.tint,
+    medals: def.medals,
     time: 0,
     events: [],
     spawn: state.spawn,
@@ -518,5 +561,6 @@ function buildLevel(index) {
     platforms: state.platforms,
     hazards: state.hazards,
     decoys: state.decoys || [],
+    tokens: state.tokens || [],
   };
 }

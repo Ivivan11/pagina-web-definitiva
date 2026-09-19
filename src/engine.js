@@ -362,6 +362,25 @@ function stepPlayer(player, input, level, dt) {
     return "dead";
   }
 
+  // El mundo tiene bordes: sin esto se puede andar hacia la izquierda desde el
+  // inicio y caerse fuera del nivel.
+  if (player.x < 0) {
+    player.x = 0;
+    player.vx = 0;
+  } else if (player.x + player.w > level.width) {
+    player.x = level.width - player.w;
+    player.vx = 0;
+  }
+
+  // --- pegatina escondida (solo cuenta si además terminas el nivel) ---
+  for (const tk of level.tokens) {
+    if (tk.taken) continue;
+    if (rectsOverlap(player, tk)) {
+      tk.taken = true;
+      pushEvent(level, "token", tk.x + tk.w / 2, tk.y + tk.h / 2, tk);
+    }
+  }
+
   // --- peligros ---
   for (const hz of level.hazards) {
     if (rectsOverlap(player, { x: hz.cx, y: hz.cy, w: hz.w, h: hz.h })) {

@@ -209,6 +209,20 @@ body {
   line-height: 1;
 }
 
+.medal-line {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--muted);
+}
+
+.token-line {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.token-line.got { color: var(--accent); }
+
 .overlay-actions {
   display: flex;
   gap: 10px;
@@ -332,7 +346,24 @@ body {
 .level-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .level-name { font-size: 14px; font-weight: 600; }
 .level-best { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.level-check { margin-left: auto; color: var(--ok); font-weight: 700; }
+.level-marks {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.level-token { color: var(--accent); font-size: 13px; }
+
+.level-medal {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35) inset;
+}
+
+.level-check { color: var(--ok); font-weight: 700; }
 
 #challenge-panel {
   background: var(--panel-2);

@@ -54,7 +54,9 @@ Dos decisiones que se tomaron a base de medir, y que dan forma a todo lo demás:
 | `src/parkour.js` | Simulación de la carrera: inercia, verbos de parkour, perseguidor y generación del recorrido con semilla |
 | `src/run-replay.js` | Repeticiones y códigos de reto (la semilla viaja dentro del código) |
 | `src/run-main.js` | Menú, carrera del día, medallas, récords y el render en silueta |
-| `src/runner.js` | El corredor: esqueleto articulado dibujado por código, con sus posturas |
+| `src/runner.js` | El corredor: esqueleto articulado dibujado por código, con luz de borde, tela con inercia y estela de velocidad |
+| `src/scenery.js` | El paisaje: cielo, ciudad a contraluz, mobiliario urbano (coches, farolas, árboles, marquesinas) y el suelo |
+| `src/texture.js` | Librería de texturas procedurales (hormigón, ladrillo, metal, óxido, madera, grano de película), horneadas una vez en canvas |
 | `src/engine.js`, `src/levels.js`, `src/replay.js`, `src/theme.js`, `src/main.js` | El modo niveles |
 | `src/fx.js` | Partículas, temblor de pantalla, hitstop y textos flotantes |
 | `src/audio.js` | Efectos de sonido sintetizados con Web Audio (cero archivos) |

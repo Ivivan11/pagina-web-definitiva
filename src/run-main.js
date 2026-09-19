@@ -387,74 +387,6 @@ Camo.init((active) => {
   if (active && G.screen === "running") togglePause(true);
 });
 
-// ---------------------------------------------------------------------------
-// Fondo: ciudad a contraluz. La profundidad la da el color, no el alfa.
-// ---------------------------------------------------------------------------
-const LAYER_TONES = [
-  ["#4d3c63", "#9a7178"],
-  ["#2c2242", "#5b3f54"],
-  ["#161227", "#2b1f30"],
-];
-const layers = [];
-
-(function buildCity() {
-  const rng = makeRng(20260919);
-  for (let i = 0; i < 3; i++) {
-    const c = document.createElement("canvas");
-    c.width = 1200;
-    c.height = H;
-    const g = c.getContext("2d");
-    const baseY = [330, 380, 440][i];
-    const maxH = [150, 190, 230][i];
-    const tone = g.createLinearGradient(0, 120, 0, PK.GROUND_Y);
-    tone.addColorStop(0, LAYER_TONES[i][0]);
-    tone.addColorStop(1, LAYER_TONES[i][1]);
-    g.fillStyle = tone;
-    let x = -40;
-    while (x < 1240) {
-      const bw = 40 + rng() * 90;
-      const bh = 40 + rng() * maxH;
-      g.fillRect(x, baseY - bh, bw, bh + 200);
-      if (rng() < 0.25) g.fillRect(x + bw * 0.45, baseY - bh - 26, 3, 26);
-      x += bw + 6 + rng() * 40;
-    }
-    layers.push({ canvas: c, speed: [0.12, 0.26, 0.48][i] });
-  }
-})();
-
-function drawSky() {
-  const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, "#14224a");
-  g.addColorStop(0.42, "#6d3b6b");
-  g.addColorStop(0.72, "#e0714a");
-  g.addColorStop(0.92, "#ffc978");
-  g.addColorStop(1, "#ffe6b0");
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, W, H);
-
-  const sx = W * 0.72;
-  const sy = H * 0.66;
-  const sun = ctx.createRadialGradient(sx, sy, 6, sx, sy, 190);
-  sun.addColorStop(0, "rgba(255,240,200,0.95)");
-  sun.addColorStop(0.35, "rgba(255,190,120,0.35)");
-  sun.addColorStop(1, "rgba(255,170,90,0)");
-  ctx.fillStyle = sun;
-  ctx.fillRect(sx - 200, sy - 200, 400, 400);
-
-  for (const layer of layers) {
-    const off = -((G.camX * layer.speed) % 1200);
-    ctx.drawImage(layer.canvas, off, 0);
-    ctx.drawImage(layer.canvas, off + 1200, 0);
-  }
-
-  const haze = ctx.createLinearGradient(0, PK.GROUND_Y - 190, 0, PK.GROUND_Y);
-  haze.addColorStop(0, "rgba(255,196,132,0)");
-  haze.addColorStop(0.75, "rgba(255,206,150,0.34)");
-  haze.addColorStop(1, "rgba(255,226,182,0.62)");
-  ctx.fillStyle = haze;
-  ctx.fillRect(0, PK.GROUND_Y - 190, W, 190);
-}
-
 function drawGround(course) {
   const y = PK.GROUND_Y;
   let cursor = G.camX - 60;
@@ -473,10 +405,44 @@ function drawGround(course) {
   }
   if (cursor < end) runs.push([cursor, end]);
 
+  // Los huecos deben leerse como agujeros, no como ventanas a la ciudad:
+  // paredes laterales y oscuridad hacia el fondo.
+  for (const hole of holes) {
+    if (hole.x + hole.w < G.camX - 60 || hole.x > G.camX + W + 60) continue;
+    const pit = ctx.createLinearGradient(0, y, 0, y + 90);
+    pit.addColorStop(0, "rgba(4,5,10,0.92)");
+    pit.addColorStop(1, "rgba(4,5,10,0.35)");
+    ctx.fillStyle = pit;
+    ctx.fillRect(hole.x, y, hole.w, H - y + 40);
+    ctx.fillStyle = "rgba(255,200,150,0.14)";
+    ctx.fillRect(hole.x, y, 2, 26);
+    ctx.fillRect(hole.x + hole.w - 2, y, 2, 26);
+  }
+
   ctx.fillStyle = INK;
   for (const [a, b] of runs) ctx.fillRect(a, y, b - a, H - y + 40);
-  ctx.fillStyle = "rgba(255,214,166,0.5)";
+  // Hormigón real encima de la silueta: sin esto era una mancha negra plana.
+  // El contexto ya viene trasladado por la cámara, así que no hace falta scrollX.
+  for (const [a, b] of runs) Tex.fillRect(ctx, a, y, b - a, H - y + 40, "concrete", { alpha: 0.68 });
+  // relieve (grietas, cascotes, charcos) y filo iluminado por el sol
+  for (const [a, b] of runs) Scenery.drawGroundStrip(ctx, a, b, y);
+  ctx.fillStyle = "rgba(255,222,178,0.55)";
   for (const [a, b] of runs) ctx.fillRect(a, y, b - a, 2);
+  ctx.fillStyle = "rgba(255,190,130,0.16)";
+  for (const [a, b] of runs) ctx.fillRect(a, y + 2, b - a, 3);
+}
+
+// El sol está arriba a la derecha: todos los objetos llevan filo de luz en su
+// cara superior y en la derecha. Es lo que convierte una mancha negra en un
+// objeto con volumen.
+const RIM_TOP = "rgba(255,226,180,0.5)";
+const RIM_SIDE = "rgba(255,196,140,0.26)";
+
+function rimLight(x, y, w, h) {
+  ctx.fillStyle = RIM_TOP;
+  ctx.fillRect(x, y, w, 2);
+  ctx.fillStyle = RIM_SIDE;
+  ctx.fillRect(x + w - 2, y, 2, h);
 }
 
 function drawObstacles(course) {
@@ -485,6 +451,7 @@ function drawObstacles(course) {
     if (ob.type === "gap" || ob.type === "fake") continue;
 
     ctx.fillStyle = INK;
+
     if (ob.type === "spikes") {
       const n = Math.max(3, Math.floor(ob.w / 16));
       const sw = ob.w / n;
@@ -496,20 +463,72 @@ function drawObstacles(course) {
       }
       ctx.closePath();
       ctx.fill();
-      ctx.strokeStyle = "rgba(255,120,90,0.85)";
+      const spikeTex = Tex.pattern("metal");
+      if (spikeTex) { ctx.fillStyle = spikeTex; ctx.fill(); }
+      ctx.strokeStyle = "rgba(255,120,90,0.9)";
       ctx.lineWidth = 2;
       ctx.stroke();
-    } else if (ob.type === "beam") {
+      // brillo en la punta de cada pincho
+      ctx.fillStyle = "rgba(255,226,190,0.55)";
+      for (let i = 0; i < n; i++) ctx.fillRect(ob.x + i * sw + sw / 2 - 1, ob.y, 2, 3);
+      continue;
+    }
+
+    if (ob.type === "beam") {
+      // andamio: cuerpo, cruces de arriostrado y pernos colgando
       ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
+      Tex.fillRect(ctx, ob.x, ob.y, ob.w, ob.h, "metal", { alpha: 0.6 });
+      Tex.fillRect(ctx, ob.x, ob.y, ob.w, ob.h, "rust", { alpha: 0.22 });
+      ctx.strokeStyle = "rgba(255,200,150,0.16)";
+      ctx.lineWidth = 2;
+      const cells = Math.max(1, Math.round(ob.w / 60));
+      const cw = ob.w / cells;
+      for (let i = 0; i < cells; i++) {
+        const x0 = ob.x + i * cw + 5;
+        const x1 = ob.x + (i + 1) * cw - 5;
+        ctx.beginPath();
+        ctx.moveTo(x0, ob.y + 5);
+        ctx.lineTo(x1, ob.y + ob.h - 5);
+        ctx.moveTo(x1, ob.y + 5);
+        ctx.lineTo(x0, ob.y + ob.h - 5);
+        ctx.stroke();
+      }
+      ctx.fillStyle = INK;
       ctx.fillRect(ob.x + 4, ob.y + ob.h, 6, 16);
       ctx.fillRect(ob.x + ob.w - 10, ob.y + ob.h, 6, 16);
-    } else {
-      ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
-      if (ob.type === "wall") {
-        ctx.fillStyle = "rgba(255,200,150,0.18)";
-        ctx.fillRect(ob.x, ob.y, ob.w, 5);
-      }
+      rimLight(ob.x, ob.y, ob.w, ob.h);
+      continue;
     }
+
+    if (ob.type === "wall") {
+      ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
+      Tex.fillRect(ctx, ob.x, ob.y, ob.w, ob.h, "brick", { alpha: 0.6 });
+      // ladrillo: juntas tenues, solo del lado que ve el sol
+      ctx.fillStyle = "rgba(255,200,150,0.1)";
+      for (let yy = ob.y + 9; yy < ob.y + ob.h - 4; yy += 11) {
+        ctx.fillRect(ob.x + ob.w * 0.35, yy, ob.w * 0.65, 1);
+      }
+      for (let yy = ob.y + 9, row = 0; yy < ob.y + ob.h - 4; yy += 11, row++) {
+        const bx = ob.x + ob.w * (row % 2 ? 0.55 : 0.75);
+        ctx.fillRect(bx, yy, 1, 10);
+      }
+      rimLight(ob.x, ob.y, ob.w, ob.h);
+      continue;
+    }
+
+    // valla de obra: dos tablones con hueco entre ellos y patas
+    const plank = Math.max(9, ob.h * 0.3);
+    ctx.fillRect(ob.x, ob.y, ob.w, plank);
+    ctx.fillRect(ob.x, ob.y + plank * 1.75, ob.w, plank);
+    ctx.fillRect(ob.x + 3, ob.y, 5, ob.h);
+    ctx.fillRect(ob.x + ob.w - 8, ob.y, 5, ob.h);
+    Tex.fillRect(ctx, ob.x, ob.y, ob.w, plank, "wood", { alpha: 0.65 });
+    Tex.fillRect(ctx, ob.x, ob.y + plank * 1.75, ob.w, plank, "wood", { alpha: 0.65 });
+    Tex.fillRect(ctx, ob.x + 3, ob.y, 5, ob.h, "metal", { alpha: 0.5 });
+    Tex.fillRect(ctx, ob.x + ob.w - 8, ob.y, 5, ob.h, "metal", { alpha: 0.5 });
+    rimLight(ob.x, ob.y, ob.w, plank);
+    ctx.fillStyle = RIM_TOP;
+    ctx.fillRect(ob.x, ob.y + plank * 1.75, ob.w, 1.5);
   }
 }
 
@@ -531,7 +550,7 @@ function speedPct(v) {
 }
 
 function render() {
-  drawSky();
+  Scenery.drawSky(ctx, G.camX, G.t);
   ctx.save();
   ctx.translate(-Math.round(G.camX), 0);
 
@@ -571,7 +590,13 @@ function render() {
 
   FX.draw(ctx);
   ctx.restore();
+
+  // Delante de todo: cables y farolas cruzando, y polvo flotando en la luz.
+  Scenery.drawOverhead(ctx, G.camX);
+  Scenery.drawMotes(ctx, G.camX, G.t);
   FX.drawScreen(ctx, W, H);
+  // Grano de película sutilísimo: rompe el degradado plano del cielo sin coste.
+  if (typeof Tex !== "undefined") Tex.grain(ctx, W, H, 0.035);
 }
 
 // ---------------------------------------------------------------------------
@@ -694,6 +719,7 @@ function tick(now) {
 // ---------------------------------------------------------------------------
 // Arranque
 // ---------------------------------------------------------------------------
+Scenery.init(W, H, PK.GROUND_Y);
 Sfx.init();
 el["mute-btn"].textContent = Sfx.isMuted() ? "Sonido: no" : "Sonido: sí";
 el["mute-btn"].classList.toggle("on", !Sfx.isMuted());

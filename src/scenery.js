@@ -340,10 +340,16 @@ const Scenery = (() => {
   }
 
   // --- cables y farolas que cruzan por DELANTE de la cámara ---
-  // Siempre por encima de la línea de juego: nunca deben tapar un obstáculo.
+  // Van más rápido que el mundo (parallax de primer plano), así que cruzan
+  // la escena de vez en cuando: es lo mismo que una farola de verdad pasando
+  // rápido en primer término al correr. El poste llega hasta el suelo de
+  // verdad (antes se cortaba en seco a media altura y quedaba flotando): el
+  // canvas mide GY de alto y su borde inferior es la línea de suelo, igual
+  // que la calle y el propio juego.
   function buildOverhead(rng) {
     const tileW = 1400;
-    const c = makeCanvas(tileW, 360);
+    const baseH = GY;
+    const c = makeCanvas(tileW, baseH);
     const g = c.getContext("2d");
     g.strokeStyle = "rgba(6,7,14,0.85)";
     g.fillStyle = "rgba(6,7,14,0.9)";
@@ -351,18 +357,21 @@ const Scenery = (() => {
     let x = 40;
     while (x < tileW) {
       const poleH = 150 + rng() * 90;
-      g.fillRect(x, 360 - poleH, 7, poleH);
+      const foot = baseH;               // el pie del poste pisa el suelo
+      g.fillRect(x, foot - poleH, 7, poleH);
+      // base ensanchada para que se lea como algo apoyado, no clavado en el aire
+      g.fillRect(x - 2, foot - 6, 11, 6);
       // brazo con farola
       const arm = 26 + rng() * 22;
-      g.fillRect(x + 7, 360 - poleH + 6, arm, 5);
+      g.fillRect(x + 7, foot - poleH + 6, arm, 5);
       g.beginPath();
-      g.ellipse(x + 7 + arm, 360 - poleH + 14, 7, 5, 0, 0, Math.PI * 2);
+      g.ellipse(x + 7 + arm, foot - poleH + 14, 7, 5, 0, 0, Math.PI * 2);
       g.fill();
       // cables colgando hacia el siguiente poste
       const next = x + 300 + rng() * 240;
       g.lineWidth = 2;
       for (let k = 0; k < 2; k++) {
-        const y0 = 360 - poleH + 18 + k * 10;
+        const y0 = foot - poleH + 18 + k * 10;
         g.beginPath();
         g.moveTo(x + 7, y0);
         g.quadraticCurveTo((x + next) / 2, y0 + 34 + k * 8, next, y0);

@@ -32,6 +32,7 @@ body {
   min-height: 100vh;
   padding: 16px;
   -webkit-font-smoothing: antialiased;
+  touch-action: manipulation; /* sin zoom por doble toque mientras juegas */
 }
 
 #app {
@@ -50,6 +51,23 @@ body {
 .hidden { display: none !important; }
 .muted { color: var(--muted); }
 .small { font-size: 13px; }
+
+/* Solo aparece en un móvil en vertical, donde el lienzo 16:9 queda pequeño. */
+#rotate-hint {
+  display: none;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (orientation: portrait) and (pointer: coarse) {
+  #rotate-hint { display: block; }
+}
 
 /* ---------------------------------------------------------------- HUD --- */
 #hud {

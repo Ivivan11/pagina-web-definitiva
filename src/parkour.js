@@ -51,78 +51,100 @@ function makeRng(seed) {
 // ---------------------------------------------------------------------------
 // Tipos: gap (hueco), barrier (valla: voltereta), beam (viga: deslizarse),
 // wall (pared: rebote), fake (suelo que cede: tropiezo), spikes (mortal).
-const OBSTACLE_TABLE = [
-  { type: "gap", weight: 22, minDist: 300 },
-  { type: "barrier", weight: 24, minDist: 260 },
-  { type: "beam", weight: 20, minDist: 280 },
-  { type: "wall", weight: 12, minDist: 340 },
-  { type: "fake", weight: 14, minDist: 260 },
-  { type: "spikes", weight: 8, minDist: 320 },
+// El recorrido enseña un verbo cada vez antes de mezclarlos: primero saltar,
+// luego la voltereta, luego deslizarse, luego la pared, y por último lo que
+// engaña (suelo falso) y lo que mata (pinchos).
+const UNLOCKS = [
+  { at: 0, type: "gap", weight: 24 },
+  { at: 850, type: "barrier", weight: 26 },
+  { at: 1900, type: "beam", weight: 22 },
+  { at: 3000, type: "wall", weight: 15 },
+  { at: 4200, type: "fake", weight: 16 },
+  { at: 5400, type: "spikes", weight: 10 },
 ];
 
 function createCourse(seed) {
-  return { seed, rng: makeRng(seed), obstacles: [], generatedTo: 0, nextAt: 700 };
+  return { seed, rng: makeRng(seed), obstacles: [], generatedTo: 0, nextAt: 620, lastType: null };
 }
 
-function pickType(rng, distanceRun) {
-  // Los primeros metros son suaves: solo huecos y vallas.
-  const table = distanceRun < 1600
-    ? OBSTACLE_TABLE.filter((o) => o.type === "gap" || o.type === "barrier")
-    : OBSTACLE_TABLE;
+// 0 al empezar, 1 pasados ~9000px: aprieta el espaciado y permite encadenados.
+function difficultyAt(x) {
+  return Math.max(0, Math.min(1, x / 9000));
+}
+
+function pickType(course, x) {
   let total = 0;
-  for (const o of table) total += o.weight;
-  let r = rng() * total;
-  for (const o of table) {
-    r -= o.weight;
-    if (r <= 0) return o;
+  for (const u of UNLOCKS) {
+    if (x < u.at) continue;
+    // lo recién desbloqueado sale más a menudo, para que lo aprendas
+    total += u.weight * (x - u.at < 1200 ? 2.2 : 1);
   }
-  return table[0];
+  let r = course.rng() * total;
+  for (const u of UNLOCKS) {
+    if (x < u.at) continue;
+    r -= u.weight * (x - u.at < 1200 ? 2.2 : 1);
+    if (r <= 0) return u.type;
+  }
+  return "gap";
+}
+
+function makeObstacle(course, type, x) {
+  const G = PK.GROUND_Y;
+  switch (type) {
+    // Los huecos y los pinchos se dimensionan para poder salvarse a la
+    // velocidad MÍNIMA (215 px/s salta ~131px): si no, un tropiezo previo los
+    // volvía insalvables sin que fuera culpa del jugador.
+    case "gap":
+      return { type, x, w: 85 + Math.floor(course.rng() * 30), y: G, h: 80 };
+    case "barrier":
+      return { type, x, w: 34 + Math.floor(course.rng() * 22), y: G - 52, h: 52 };
+    case "beam":
+      return { type, x, w: 120 + Math.floor(course.rng() * 90), y: G - 118, h: 62 };
+    case "wall":
+      // Justo por encima de un salto normal: se puede pasar a lo bruto, pero
+      // el rebote en pared es mucho más rápido y más bonito.
+      return { type, x, w: 40, y: G - 108, h: 108 };
+    case "fake":
+      return { type, x, w: 70 + Math.floor(course.rng() * 50), y: G, h: 70, broken: false };
+    case "spikes":
+      return { type, x, w: 45 + Math.floor(course.rng() * 28), y: G - 26, h: 26 };
+    default:
+      return { type: "gap", x, w: 100, y: G, h: 80 };
+  }
 }
 
 function generateAhead(course, uptoX) {
   while (course.generatedTo < uptoX) {
-    const x = course.nextAt;
-    const entry = pickType(course.rng, x);
-    const G = PK.GROUND_Y;
-    let ob = null;
+    let x = course.nextAt;
+    const d = difficultyAt(x);
+    let type = pickType(course, x);
+    // Sin dos iguales seguidos: mata la monotonía del recorrido generado.
+    if (type === course.lastType && course.rng() < 0.7) type = pickType(course, x);
+    course.lastType = type;
 
-    switch (entry.type) {
-      case "gap": {
-        const w = 90 + Math.floor(course.rng() * 90);
-        ob = { type: "gap", x, w, y: G, h: 80 };
-        break;
-      }
-      case "barrier": {
-        const w = 34 + Math.floor(course.rng() * 22);
-        ob = { type: "barrier", x, w, y: G - 52, h: 52 };
-        break;
-      }
-      case "beam": {
-        const w = 120 + Math.floor(course.rng() * 90);
-        ob = { type: "beam", x, w, y: G - 118, h: 62 };
-        break;
-      }
-      case "wall": {
-        // Justo por encima de un salto normal: se puede pasar a lo bruto, pero
-        // el rebote en pared es mucho más rápido y más bonito.
-        ob = { type: "wall", x, w: 40, y: G - 108, h: 108 };
-        break;
-      }
-      case "fake": {
-        const w = 70 + Math.floor(course.rng() * 50);
-        ob = { type: "fake", x, w, y: G, h: 70, broken: false };
-        break;
-      }
-      case "spikes": {
-        const w = 50 + Math.floor(course.rng() * 40);
-        ob = { type: "spikes", x, w, y: G - 26, h: 26 };
-        break;
+    const ob = makeObstacle(course, type, x);
+    course.obstacles.push(ob);
+    course.generatedTo = x + ob.w;
+
+    // Encadenados: a partir de media dificultad, a veces viene otro pegado y
+    // hay que enlazar dos verbos sin recuperar velocidad.
+    if (d > 0.35 && course.rng() < 0.16 + d * 0.22) {
+      const second = pickType(course, x);
+      if (second !== "spikes" && !(type === "gap" && second === "gap")) {
+        // Si en el encadenado hay un hueco o una pared hace falta sitio para
+        // aterrizar y volver a saltar; si no, el segundo obstáculo es injusto.
+        const needsRoom = type === "gap" || type === "wall" || second === "gap" || second === "wall";
+        const linkGap = (needsRoom ? 250 : 140) + Math.floor(course.rng() * 90);
+        const ob2 = makeObstacle(course, second, course.generatedTo + linkGap);
+        course.obstacles.push(ob2);
+        course.generatedTo = ob2.x + ob2.w;
+        course.lastType = second;
       }
     }
 
-    course.obstacles.push(ob);
-    course.generatedTo = x + ob.w;
-    course.nextAt = course.generatedTo + entry.minDist + Math.floor(course.rng() * 190);
+    // El hueco entre grupos se estrecha con la dificultad
+    const breather = Math.round(330 - 150 * d) + Math.floor(course.rng() * (200 - 90 * d));
+    course.nextAt = course.generatedTo + breather;
   }
 
   // Suelta lo que ya quedó muy atrás para no crecer sin límite
@@ -130,6 +152,7 @@ function generateAhead(course, uptoX) {
     course.obstacles.shift();
   }
 }
+
 
 // ---------------------------------------------------------------------------
 // Estado del corredor

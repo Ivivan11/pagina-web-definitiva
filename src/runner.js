@@ -42,7 +42,7 @@ const Runner = (() => {
 
   // ---------- estado de pose (escalares reutilizados, cero asignaciones) ----------
   let hipX = 0, hipY = HIP_Y, lean = 0.1, tilt = 0;
-  let rot = 0, pivX = 0, pivY = -40, snap = false, flat = false;
+  let rot = 0, pivX = 0, pivY = -40, snap = false, clamp = false;
   let curT = 0, curSp = 0;
   // piernas y brazos: ángulos absolutos ya resueltos
   let bT = 0, bS = 0, bF = 0, fT = 0, fS = 0, fF = 0;
@@ -67,7 +67,7 @@ const Runner = (() => {
   // ---------- poses ----------
   function setPose(pose, t, sp, ph) {
     hipX = 0; hipY = HIP_Y; lean = 0.1; tilt = 0;
-    rot = 0; pivX = 0; pivY = -40; snap = false; flat = false;
+    rot = 0; pivX = 0; pivY = -40; snap = false; clamp = false;
     curT = t; curSp = sp;
 
     switch (pose) {
@@ -98,10 +98,10 @@ const Runner = (() => {
         lean = 0.22 + 0.15 * k;
         tilt = -0.14;
         hipY = HIP_Y - 1.5;
-        legs(-0.85 + 0.45 * k, 0.35 + 1.25 * k, 1.15,
-              0.55 + 0.60 * k, 0.60 + 0.95 * k, 1.30);
-        arms(-1.25 + 0.35 * k + fl, 0.75,
-              1.30 - 0.50 * k - fl, 0.55);
+        legs(-0.75 + 0.40 * k, 0.45 + 1.30 * k, 1.15,   // pierna de atrás que recoge el talón
+              0.55 + 0.60 * k, 0.60 + 0.95 * k, 1.30);   // rodilla que sube por delante
+        arms(-1.15 + 0.30 * k + fl, 0.90,
+              1.75 + 0.35 * k - fl, 0.45);               // brazo alzado en diagonal
         break;
       }
 
@@ -119,23 +119,23 @@ const Runner = (() => {
 
       case "slide": {
         const k = cl01(ph, 0.5), hu = sin(PI * k);
-        flat = true;
         hipX = -6;
         hipY = -17 - 2 * hu;
         lean = -1.30 - 0.10 * hu;   // torso casi tumbado, pies por delante
         tilt = 0.40;                // la cabeza sigue mirando al frente
-        legs(1.05, 1.90, 1.30,      // pierna recogida
+        legs(1.50, 2.55, -0.52,     // pierna recogida, pie bajo el cuerpo
              1.32, 0.10, 1.25);     // pierna estirada a ras de suelo
-        arms(-1.10, 1.35,           // mano de atrás apoyada en el suelo
+        arms(-1.30, 2.20,           // codo atrás, mano hacia el suelo
               0.90, 1.20);
+        clamp = true;               // red de seguridad: nada por debajo del suelo
         break;
       }
 
       case "vault": {
         const k = cl01(ph, (t * 1.6) % 1), hu = sin(PI * k), la = k * k;
-        hipX = -14 + 30 * k;
+        hipX = -12 + 24 * k;
         hipY = HIP_Y - 2 - 16 * hu;
-        lean = 0.65 + 0.55 * hu;
+        lean = 0.55 + 0.45 * hu;
         tilt = -0.30;
         // piernas recogidas a un lado que bajan a aterrizar al final
         legs(mix(1.15 + 0.45 * hu, 0.55, la), mix(1.60 + 0.55 * hu, 0.75, la), 1.35,
@@ -161,10 +161,9 @@ const Runner = (() => {
 
       case "roll": {
         const k = num(ph, (t * 1.5) % 1);
-        flat = true;
         rot = k * TAU;
-        pivX = 0; pivY = -37;
-        hipX = -17; hipY = -26;
+        pivX = 0; pivY = -25;       // centro de giro ~ centro de la bola
+        hipX = -17; hipY = -14;
         lean = 0.55; tilt = 1.25;   // cabeza metida hacia las rodillas
         legs(1.95, 2.30, 1.10,
              2.15, 2.45, 1.10);
@@ -251,6 +250,16 @@ const Runner = (() => {
       let d = -sole;
       if (d > 7) d = 7; else if (d < -7) d = -7;
       for (let i = 1; i < 30; i += 2) J[i] += d;
+    }
+    // Clamp de seguridad: sube el cuerpo si alguna parte se hunde en el suelo.
+    if (clamp) {
+      let low = -1e9;
+      for (let i = 1; i < 30; i += 2) if (J[i] > low) low = J[i];
+      low += R_ANK;
+      if (low > 0) {
+        let d = low > 26 ? -26 : -low;
+        for (let i = 1; i < 30; i += 2) J[i] += d;
+      }
     }
   }
 
@@ -342,16 +351,10 @@ const Runner = (() => {
     if (chaser) lean += 0.08;   // el perseguidor va más encorvado
     build();
 
-    // Escala: 100 unidades locales = alto de la caja. En las poses tumbadas
-    // (slide/roll) la caja suele achatarse, así que se toma una referencia
-    // mayor para que el muñeco no encoja, con tope en el doble del alto.
-    let ref = h;
-    if (flat) {
-      const boost = h * 1.45;
-      ref = w > boost ? w : boost;
-      if (ref > h * 2) ref = h * 2;
-    }
-    const s = ref * 0.01;
+    // Escala única: 100 unidades locales = alto de la caja, con los pies en
+    // su borde inferior. Las poses tumbadas (slide/roll) ya se dibujan bajas
+    // dentro de esa caja, así que el personaje nunca cambia de tamaño.
+    const s = h * 0.01;
 
     ctx.save();
     ctx.globalAlpha = a;
